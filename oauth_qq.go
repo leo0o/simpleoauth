@@ -5,7 +5,6 @@ import (
 	"net/url"
 	"strings"
 	"encoding/json"
-	"fmt"
 )
 
 const qq_getaccesstoken_url = "https://graph.qq.com/oauth2.0/token"
@@ -62,7 +61,6 @@ func (oauth *QQOAuth) GetUserinfo(accesstoken string, openid string) map[string]
 	if err != nil {
 		return nil
 	}
-	fmt.Println(response)
 	return response
 }
 
