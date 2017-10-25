@@ -39,16 +39,14 @@ func (oauth *QQOAuth) GetAccesstoken(code string) map[string]interface{}{
 	return map[string]interface{}{"access_token" : accesstoken}
 }
 
-func (oauth *QQOAuth) GetOpenid(accesstoken string) string{
+func (oauth *QQOAuth) GetOpenid(accesstoken string) map[string]interface{}{
 	request:= httplib.Get(qq_openid_url)
 	request.Param("access_token",accesstoken)
+	request.Param("unionid","1")
 	responseStr, _ := request.String()
 	var response  map[string]interface{}
 	json.Unmarshal([]byte(responseStr[10:len(responseStr)-3]),&response)
-	if _, ok := response["error"]; ok {  //获取openid接口返回错误
-		return ""
-	}
-	return response["openid"].(string)
+	return response
 }
 
 func (oauth *QQOAuth) GetUserinfo(accesstoken string, openid string) map[string]interface{}{
@@ -71,10 +69,13 @@ func (oauth *QQOAuth) Authorize(code string) AuthorizeResult{
 	}
 	accesstoken := accesstokenResponse["access_token"].(string)
 	openidResponse := oauth.GetOpenid(accesstoken)
-	if "" == openidResponse{
+	if _, ok := openidResponse["error"]; ok {  //获取openid接口返回错误
 		return AuthorizeResult{false, nil}
 	}
-	getuserinfoResult := oauth.GetUserinfo(accesstoken, openidResponse)
+	openid := openidResponse["openid"].(string)
+	unionid :=  openidResponse["unionid"].(string)
+
+	getuserinfoResult := oauth.GetUserinfo(accesstoken, openid)
 	if getuserinfoResult == nil{
 		return AuthorizeResult{false, nil}
 	}
@@ -90,10 +91,10 @@ func (oauth *QQOAuth) Authorize(code string) AuthorizeResult{
 	}
 	return AuthorizeResult{true, map[string]interface{}{
 		"nickname":getuserinfoResult["nickname"].(string),
-		"openid":getuserinfoResult["openid"].(string),
+		"openid":openid,
 		"sex":sex,
-		"headimgurl":getuserinfoResult["figureurl"].(string),
-		"unionid":""}}
+		"headimgurl":getuserinfoResult["figureurl_qq_1"].(string),   // QQ头像 40x40尺寸
+		"unionid":unionid}}
 }
 
 func (oauth *QQOAuth) InitOAuth(){
