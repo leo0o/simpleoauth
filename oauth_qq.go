@@ -2,7 +2,6 @@ package simpleoauth
 
 import (
 	"httplib"
-	"net/url"
 	"strings"
 	"encoding/json"
 )
@@ -25,7 +24,7 @@ func (oauth *QQOAuth) GetAccesstoken(code string) map[string]interface{}{
 	request.Param("client_id",oauth.appkey)
 	request.Param("client_secret",oauth.appsecret)
 	request.Param("code",code)
-	request.Param("redirect_uri",url.QueryEscape(oauth.redirect_url))
+	request.Param("redirect_uri", oauth.redirect_url)
 
 	response, err := request.String()
 	if err != nil {
